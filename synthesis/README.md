@@ -1,0 +1,1 @@
+The synthesis code builds on the EDM repository (https://github.com/NVlabs/edm) - [LICENSE](EDM_LICENSE.txt)

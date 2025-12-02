@@ -1,0 +1,12 @@
+uv.lock
+.venv
+.idea
+datasets/mvtec_anomaly_detection
+datasets/CL_pairs
+datasets/DTD
+*.egg-info
+outputs
+cache
+**/__pycache__
+synthesis-runs
+wandb

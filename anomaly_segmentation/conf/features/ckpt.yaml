@@ -1,0 +1,6 @@
+_target_: data.feature_provider.FeaturesFromCheckpoint
+cache_dir: ${hydra:runtime.cwd}/cache
+fe_tag: cld
+layers: 2
+save_in_memory: True
+device: ${device}

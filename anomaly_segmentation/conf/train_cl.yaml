@@ -1,0 +1,24 @@
+track: CL
+device: cuda:0
+resize: 512
+vis_size: [512, 512]
+
+pairs_dataset_path: ../../datasets/CL_pairs/${dataset.name}_${dataset.object_name}
+tag: "CL"
+cache_dir: ../../cache
+cl_k: 5
+iterations: 10000
+segment_after: True
+compute_metrics: False
+n_clusters: 3
+
+defaults:
+  - _self_
+  - dataset: ???
+  - features: wide
+
+hydra:
+  job:
+    chdir: True
+  run:
+    dir: ./outputs/${track}_${dataset.name}_${now:%Y-%m-%d}_${now:%H-%M-%S}

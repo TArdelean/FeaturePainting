@@ -1,0 +1,6 @@
+_target_: data.MVTecDataset
+name: mvtec
+data_root: ${hydra:runtime.cwd}/datasets/mvtec_anomaly_detection
+resize: ${resize}
+object_name: tile
+

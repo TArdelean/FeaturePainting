@@ -1,0 +1,6 @@
+_target_: data.SimpleDataset
+name: blueb
+local_data: ${dataset.name}
+data_root: ${hydra:runtime.cwd}/datasets/${dataset.local_data}
+resize: ${resize}
+object_name: single

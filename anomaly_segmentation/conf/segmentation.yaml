@@ -1,0 +1,19 @@
+track: CL
+device: cuda:0
+resize: 512
+vis_size: [512, 512]
+
+compute_metrics: False
+n_clusters: 3
+save_labels_tiff: True
+
+defaults:
+  - _self_
+  - dataset: ???
+  - features: wide
+
+hydra:
+  job:
+    chdir: True
+  run:
+    dir: ./outputs/${track}_${dataset.name}_${now:%Y-%m-%d}_${now:%H-%M-%S}

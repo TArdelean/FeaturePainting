@@ -1,0 +1,17 @@
+track: debug
+device: cuda:0
+resize: 512
+save_alpha_unit: True
+save_alpha_tiff: False
+vis_size: [512, 512]
+
+defaults:
+  - _self_
+  - dataset: ???
+  - features: wide
+
+hydra:
+  job:
+    chdir: True
+  run:
+    dir: ./outputs/${track}_${dataset.name}_${now:%Y-%m-%d}_${now:%H-%M-%S}

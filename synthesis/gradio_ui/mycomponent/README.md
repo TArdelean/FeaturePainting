@@ -1,0 +1,1 @@
+To build the component, run ```gradio cc build``` in the `mycomponent` directory.

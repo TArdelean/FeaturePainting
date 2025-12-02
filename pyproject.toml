@@ -1,0 +1,41 @@
+[project]
+name = "feature-painting"
+version = "0.1.0"
+description = "Python environment for Example-based Feature Painting on Textures"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "torch==2.5.1",
+    "torchvision==0.20.1",
+    "torchaudio==2.5.1",
+    "tqdm>=4.67.1",
+    "tifffile>=2025.10.16",
+    "opencv-python>=4.12.0.88",
+    "scikit-learn>=1.7.2",
+    "matplotlib>=3.10.7",
+    "hydra-core>=1.3.2",
+    "scikit-image>=0.25.2",
+    "gradio-mycomponent",
+    "diffusers>=0.35.2",
+    "pydantic==2.10.6",
+    "wandb>=0.23.0",
+    "psutil>=7.1.3",
+    "accelerate>=1.12.0",
+]
+
+[[tool.uv.index]]
+name = "pytorch-cu121"
+url = "https://download.pytorch.org/whl/cu121"
+explicit = true 
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cu121" }]
+torchvision = [{ index = "pytorch-cu121" }]
+torchaudio = [{ index = "pytorch-cu121" }]
+gradio-mycomponent = { path = "synthesis/gradio_ui/mycomponent/dist/gradio_mycomponent-0.0.1-py3-none-any.whl" }
+
+[tool.uv]
+package = true
+
+[tool.setuptools]
+packages = ["anomaly_segmentation", "synthesis"]

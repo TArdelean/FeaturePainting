@@ -1,0 +1,24 @@
+track: debug
+resize: 512
+device: cuda:0
+
+anomaly_out: nil
+masks_root: outputs/${anomaly_out}/logs/alpha_tiff
+pairs_dataset_path: datasets/CL_pairs/${dataset.name}_${dataset.object_name}
+cache_dir: cache
+beta: 1.5
+border: 5
+f_cnt: 5
+n_clusters: 6
+
+defaults:
+  - _self_
+  - dataset: ???
+  - features: wide
+
+hydra:
+  output_subdir: nil
+  run:
+    dir: nil
+  sweep:
+    dir: nil

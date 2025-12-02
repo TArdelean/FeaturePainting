@@ -1,0 +1,5 @@
+_target_: data.feature_provider.RGBFeatures
+cache_dir: ${hydra:runtime.cwd}/cache
+device: ${device}
+save_in_memory: True
+save_on_disk: False
