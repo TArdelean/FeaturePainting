@@ -114,7 +114,7 @@ def circular_add_2d(tensor, pos_i, pos_j, size_i, size_j, adder=None):
 @torch.no_grad()
 def multi_diffusion(net, noise, class_labels, randn_like=torch.randn_like, num_steps=18, sigma_min=0.002, sigma_max=80,
                     rho=7, S_churn=0, S_min=0, S_max=float('inf'), S_noise=1, guidance=4.0,
-                    frame_h=64, frame_w=64, overlap=32, randomize=15, save_trajectory=False):
+                    frame_h=64, frame_w=64, overlap=32, randomize=15, save_trajectory=False, wrap=True):
     sigma_min = max(sigma_min, net.sigma_min)
     sigma_max = min(sigma_max, net.sigma_max)
 
@@ -151,15 +151,15 @@ def multi_diffusion(net, noise, class_labels, randn_like=torch.randn_like, num_s
                 if randomize > 0:
                     if ci != 0 and ci != cy:
                         i += int(np.random.rand() * (2 * randomize + 1)) - randomize
-                    elif ci == 0:
+                    elif ci == 0 and wrap:
                         i -= int(np.random.rand() * (randomize + 1))
-                    elif ci == cy:
+                    elif ci == cy and wrap:
                         i += int(np.random.rand() * (randomize + 1))
                     if cj != 0 and cj != cx:
                         j += int(np.random.rand() * (2 * randomize + 1)) - randomize
-                    elif cj == 0:
+                    elif cj == 0 and wrap:
                         j -= int(np.random.rand() * (randomize + 1))
-                    elif cj == cx:
+                    elif cj == cx and wrap:
                         j += int(np.random.rand() * (randomize + 1))
 
                 x_next = get_wrapped_window(result, i, j, frame_h, frame_w)
@@ -501,3 +501,70 @@ class PostProcessor:
     def encode(self, image):
         x = self.decoder.encode(image)
         return x
+
+
+def setup_post_processor_with_gn_stats(post, stats, use_stats=True):
+    def sync_wrap_gn(gn_module, gn_name):
+        def new_forward(x):
+            b, c, h, w = x.shape
+
+            x = x.reshape(b, gn_module.num_groups, -1)
+            assert gn_name in stats or not use_stats
+            if use_stats:
+                mean = stats[gn_name][0]
+                var = stats[gn_name][1]
+            else:
+                mean = x.mean(-1, keepdim=True)
+                var = x.var(-1, keepdim=True)
+                stats[gn_name] = (mean, var)
+
+            x = (x - mean) / (var + gn_module.eps).sqrt()
+            x = x.reshape(b, c, h, w)
+            x = x * gn_module.weight[None, :, None, None] + gn_module.bias[None, :, None, None]
+            return x
+
+        return new_forward
+
+    model = post.decoder.vae.decoder
+    for name, module in model.named_modules():
+        if isinstance(module, torch.nn.GroupNorm):
+            if 'attentions' in name:
+                continue
+            module.forward = sync_wrap_gn(module, name)
+
+
+# noinspection DuplicatedCode
+@torch.no_grad()
+def euler_sampler_trajectory(net, latents, class_labels, num_steps, sigma_min=0.002, sigma_max=80, rho=7, guidance=4.0):
+    sigma_min = max(sigma_min, net.sigma_min)
+    sigma_max = min(sigma_max, net.sigma_max)
+    step_indices = torch.arange(num_steps, dtype=torch.float64, device=latents.device)
+    t_steps = (sigma_max ** (1 / rho) + step_indices / (num_steps - 1) * (
+            sigma_min ** (1 / rho) - sigma_max ** (1 / rho))) ** rho
+    t_steps = torch.cat([net.round_sigma(t_steps), torch.zeros_like(t_steps[:1])])  # t_N = 0
+
+    x_next = latents.to(torch.float64) * t_steps[0]
+    if guidance:
+        class_labels = torch.cat([class_labels, torch.zeros_like(class_labels)], dim=0)
+
+    directions = []
+    for i, (t_cur, t_next) in enumerate(zip(t_steps[:-1], t_steps[1:])):  # 0, ..., N-1
+        x_cur = x_next
+        t_cur = net.round_sigma(t_cur)
+
+        # Euler step.
+        if guidance:
+            x = torch.cat([x_cur, x_cur], dim=0)
+            t = t_cur
+            denoised = net(x, t, class_labels).to(torch.float64)
+            d_cur = (x - denoised) / t
+            d_cond, d_uncond = torch.chunk(d_cur, 2, dim=0)
+            d_cur = torch.lerp(d_uncond, d_cond, weight=guidance)
+        else:
+            denoised = net(x_cur, t_cur, class_labels).to(torch.float64)
+            d_cur = (x_cur - denoised) / t_cur
+
+        directions.append(d_cur)
+        x_next = x_cur + (t_next - t_cur) * d_cur
+
+    return x_next, directions

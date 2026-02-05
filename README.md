@@ -6,6 +6,15 @@ This is the official implementation of *Example-Based Feature Painting on Textur
 
 ![Teaser](static/teaser.jpg)
 
+## ✨ New Update ✨
+
+---
+
+🎨 Added a Blender add-on to see this project in action more easily: see [Blender](Blender/README.md).
+
+⚡ Also added two texture models to try out the demo without having to train your own network first.
+  * To use these weights download the archive from [Google Drive here](https://drive.google.com/file/d/1iRjCXRjIykGGeBxHcPDSeslIsHvQjfWO/view?usp=sharing).
+  * Then simply unzip the content into the `synthesis-runs` directory.
 ---
 
 ## 🚀 Installation
