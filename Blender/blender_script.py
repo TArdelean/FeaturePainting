@@ -265,7 +265,8 @@ class GenerateTexture(bpy.types.Operator):
             crt_object.data.materials.append(mat)
 
         crt_object["weight_id"] = context.scene.my_settings.my_enum
-        send_interactive_task(method='generate_image', filepath=image_path, guidance=7.0)
+        send_interactive_task(method='generate_image', filepath=image_path, guidance=7.0,
+                              h=context.scene.my_height, w=context.scene.my_width)
 
         return {'FINISHED'}
 
@@ -327,6 +328,9 @@ class TextureSynthPanel(bpy.types.Panel):
 
         settings = context.scene.my_settings
         self.layout.prop(settings, "my_enum")
+        row = self.layout.row(align=True)
+        row.prop(context.scene, "my_height", text="H")
+        row.prop(context.scene, "my_width", text="W")
         self.layout.operator(GenerateTexture.bl_idname, text="Generate")
 
         self.layout.label(text="Use the brush to paint semantic maps")
@@ -391,6 +395,23 @@ def register():
         bpy.utils.register_class(cls)
     bpy.types.Scene.my_settings = bpy.props.PointerProperty(
         type=SelectWeightsDropdown
+    )
+    bpy.types.Scene.my_height = bpy.props.IntProperty(
+        name="Height",
+        description="Height value",
+        default=512,
+        min=512,
+        max=4096,
+        step=8
+    )
+
+    bpy.types.Scene.my_width = bpy.props.IntProperty(
+        name="Width",
+        description="Width value",
+        default=512,
+        min=512,
+        max=4096,
+        step=8
     )
 
 

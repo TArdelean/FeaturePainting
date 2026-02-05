@@ -72,7 +72,7 @@ def generate_image(task):
     gn_stats = {}
     my_utils.setup_post_processor_with_gn_stats(post, gn_stats, use_stats=False)
 
-    h, w = 64, 64
+    h, w = task.get('h', 512) // 8, task.get('w', 512) // 8
     class_labels = get_pure_labels(h, w, device, net.label_dim)
     rnd, latents = my_utils.stacked_random_latents(net, 1, class_labels.device, h=h, w=w)
     result, directions = my_utils.euler_sampler_trajectory(net, latents, class_labels, num_steps=42,
